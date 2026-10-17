@@ -4,7 +4,7 @@
     "backend": {
       "root": "athlenet_fullstack_updated/athlenet_fullstack/backend",
       "framework": "django",
-      "buildCommand": "python manage.py collectstatic --noinput"
+      "buildCommand": "DJANGO_SECRET_KEY=\"${DJANGO_SECRET_KEY:-vercel-static-build-only}\" python manage.py collectstatic --noinput"
     },
     "frontend": {
       "root": "athlenet_fullstack_updated/athlenet_fullstack/frontend",
