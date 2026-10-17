@@ -38,7 +38,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: athlenet-backend
-          property: host
+        value: https://athlenet-backend.onrender.com/api

@@ -67,8 +67,9 @@ production writes or uploads.
 Create a Blueprint in Render from this repository and select the root
 `render.yaml`. It defines a Django web service, a Vite static site, and a
 PostgreSQL database, with the frontend backend URL filled from the backend
-service automatically. The backend start command applies database migrations
-before starting Gunicorn.
+service's public URL. If you change the backend service's public Render URL,
+update `VITE_API_URL` in `render.yaml` to match. The backend start command
+applies database migrations before starting Gunicorn.
 
 The Blueprint currently uses Render's free service/database plans. Free
 services can spin down while idle, and free databases have plan-specific
