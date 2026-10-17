@@ -7,7 +7,7 @@ import {
   Send, Settings, ShieldCheck, Target, Trophy, UserPlus, Users, X, Upload, Filter,
   BriefcaseBusiness, Globe2, SlidersHorizontal, ArrowUpRight, Activity, Sparkles
 } from 'lucide-react';
-import { API } from './api';
+import { API, API_ORIGIN } from './api';
 import './index.css';
 import CommunityFeed from './components/CommunityFeed';
 import ProfileEditor from './components/ProfileEditor';
@@ -40,7 +40,7 @@ function AuthProvider({ children }) {
   return <AuthContext.Provider value={{ user, loading, login, register, logout, refresh }}>{children}</AuthContext.Provider>;
 }
 
-const mediaUrl = (src) => src ? new URL(src, window.location.origin).href : '';
+const mediaUrl = (src) => src ? new URL(src, API_ORIGIN).href : '';
 
 function Loader() { return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-200 border-t-orange-500" /></div>; }
 function Avatar({ src, name = 'User', size = 'h-10 w-10' }) { return src ? <img src={mediaUrl(src)} className={`${size} rounded-full object-cover`} /> : <div className={`${size} flex shrink-0 items-center justify-center rounded-full bg-orange-100 font-black text-orange-600`}>{name?.charAt(0)?.toUpperCase()}</div>; }

@@ -1,7 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { API } from '../api';
-
-const ORIGIN = (API.defaults?.baseURL || '/api').replace(/\/api\/?$/, '');
+import { API, API_ORIGIN } from '../api';
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -95,7 +93,7 @@ export default function CommunityFeed() {
       <div className="space-y-4">
         {posts.map((p) => {
           const name = authorName(p);
-          const img = p.image ? (String(p.image).startsWith('http') ? p.image : ORIGIN + p.image) : null;
+          const img = p.image ? new URL(p.image, API_ORIGIN).href : null;
           return (
             <article key={p.id} className="rounded-2xl border border-slate-200 bg-white">
               <div className="flex items-center gap-3 p-5 pb-3">

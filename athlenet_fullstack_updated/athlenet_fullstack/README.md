@@ -62,6 +62,20 @@ current SQLite database and local media directory are not persistent Vercel
 storage; configure a managed database and media store before relying on
 production writes or uploads.
 
+## Deploy on Render
+
+Create a Blueprint in Render from this repository and select the root
+`render.yaml`. It defines a Django web service, a Vite static site, and a
+PostgreSQL database, with the frontend backend URL filled from the backend
+service automatically. The backend start command applies database migrations
+before starting Gunicorn.
+
+The Blueprint currently uses Render's free service/database plans. Free
+services can spin down while idle, and free databases have plan-specific
+lifetime and storage limits. Uploaded media remains on the backend filesystem
+and is not persistent across deploys/restarts; configure persistent/object
+storage before relying on uploads in production.
+
 ## Demo accounts
 Password for demo accounts: `Athlenet@123`
 - demo_coach
