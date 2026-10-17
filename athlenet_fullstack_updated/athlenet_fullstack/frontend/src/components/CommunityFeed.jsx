@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API } from '../api';
 
-const ORIGIN = (API.defaults?.baseURL || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '');
+const ORIGIN = (API.defaults?.baseURL || '/api').replace(/\/api\/?$/, '');
 
 const TABS = [
   { key: 'all', label: 'All' },

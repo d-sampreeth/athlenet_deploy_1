@@ -47,6 +47,21 @@ npm run dev
 
 Frontend: http://localhost:5173/
 
+## Deploy on Vercel
+
+The repository-root `vercel.json` deploys the Django backend and Vite frontend as
+separate services. The frontend is served at `/`; `/api`, `/admin`, `/media`,
+and `/static` are routed to the backend. The frontend uses same-origin `/api`
+requests, while Vite proxies those paths to the local Django server during
+development.
+
+Set `DJANGO_SECRET_KEY` in Vercel before deployment, and set
+`DJANGO_ALLOWED_HOSTS` to a comma-separated list if serving the app from custom
+domains. `DJANGO_DEBUG` defaults to `true` locally and `false` on Vercel. The
+current SQLite database and local media directory are not persistent Vercel
+storage; configure a managed database and media store before relying on
+production writes or uploads.
+
 ## Demo accounts
 Password for demo accounts: `Athlenet@123`
 - demo_coach
