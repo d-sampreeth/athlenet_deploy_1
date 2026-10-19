@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
+from datetime import date, timedelta
 
-from .models import Comment, Follow, Like, PlayerProfile, Post, Profile
+from .models import CoachProfile, Comment, Follow, Like, Opportunity, PlayerProfile, Post, Profile
 
 
 class AccountFeatureTests(APITestCase):
@@ -174,3 +175,64 @@ class AccountFeatureTests(APITestCase):
         deleted = self.client.delete(f'/api/posts/{post.pk}/')
         self.assertEqual(deleted.status_code, 204)
         self.assertFalse(Post.objects.filter(pk=post.pk).exists())
+
+
+class LocalHubTests(APITestCase):
+    def test_local_hub_returns_player_and_coach_content_for_matching_pincode(self):
+        viewer = User.objects.create_user(username='local-viewer', password='password')
+        Profile.objects.create(user=viewer, role='user', pincode='560001', location='Bengaluru')
+        player = User.objects.create_user(username='nearby-player', password='password')
+        player_profile = Profile.objects.create(user=player, role='player', pincode='560001', location='Other')
+        PlayerProfile.objects.create(profile=player_profile)
+        coach = User.objects.create_user(username='nearby-coach', password='password')
+        coach_profile = Profile.objects.create(user=coach, role='coach', pincode='560001')
+        coach_details = CoachProfile.objects.create(profile=coach_profile, sport='Cricket')
+        distant = User.objects.create_user(username='distant-player', password='password')
+        distant_profile = Profile.objects.create(user=distant, role='player', pincode='560002')
+        PlayerProfile.objects.create(profile=distant_profile)
+        community = User.objects.create_user(username='nearby-community', password='password')
+        Profile.objects.create(user=community, role='user', pincode='560001')
+
+        Post.objects.create(author=player, content='Nearby player post')
+        Post.objects.create(author=coach, content='Nearby coach post')
+        Post.objects.create(author=distant, content='Distant post')
+        Post.objects.create(author=community, content='Community member post')
+        Opportunity.objects.create(
+            coach=coach_details,
+            title='Nearby cricket trial',
+            description='Local trial details',
+            sport='Cricket',
+            location='Bengaluru',
+            event_date=date.today() + timedelta(days=10),
+            last_date=date.today() + timedelta(days=5),
+        )
+
+        self.client.force_authenticate(user=viewer)
+        response = self.client.get('/api/local-hub/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {post['content'] for post in response.data['posts']},
+            {'Nearby player post', 'Nearby coach post'},
+        )
+        self.assertEqual(
+            [opportunity['title'] for opportunity in response.data['opportunities']],
+            ['Nearby cricket trial'],
+        )
+
+    def test_local_hub_uses_location_when_user_has_no_pincode(self):
+        viewer = User.objects.create_user(username='location-viewer', password='password')
+        Profile.objects.create(user=viewer, role='user', location='Pune')
+        coach = User.objects.create_user(username='pune-coach', password='password')
+        Profile.objects.create(user=coach, role='coach', location='pUnE', pincode='411001')
+        player = User.objects.create_user(username='other-city-player', password='password')
+        Profile.objects.create(user=player, role='player', location='Mumbai', pincode='400001')
+        Post.objects.create(author=coach, content='Pune coach post')
+        Post.objects.create(author=player, content='Mumbai player post')
+
+        self.client.force_authenticate(user=viewer)
+        response = self.client.get('/api/local-hub/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([post['content'] for post in response.data['posts']], ['Pune coach post'])
+        self.assertEqual(response.data['opportunities'], [])

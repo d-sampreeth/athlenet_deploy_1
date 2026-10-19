@@ -208,6 +208,30 @@ class OpportunityListCreateView(APIView):
         if s.is_valid(): obj=s.save(coach=coach); return Response(OpportunitySerializer(obj,context={'request':request}).data,201)
         return Response(s.errors,400)
 
+class LocalHubView(APIView):
+    def get(self,request):
+        profile=Profile.objects.filter(user=request.user).first()
+        if not profile:
+            return Response({'posts':[],'opportunities':[]})
+        local_profiles=Profile.objects.filter(role__in=['player','coach'])
+        if profile.pincode:
+            local_profiles=local_profiles.filter(pincode=profile.pincode)
+        elif profile.location.strip():
+            local_profiles=local_profiles.filter(location__iexact=profile.location.strip())
+        else:
+            return Response({'posts':[],'opportunities':[]})
+        local_users=local_profiles.values_list('user_id',flat=True)
+        posts=Post.objects.filter(author_id__in=local_users).select_related('author').order_by('-created_at')
+        opportunities=Opportunity.objects.filter(
+            coach__profile__user_id__in=local_users,
+            active=True,
+        ).select_related('coach__profile__user').order_by('-created_at')
+        context={'request':request}
+        return Response({
+            'posts':PostSerializer(posts,many=True,context=context).data,
+            'opportunities':OpportunitySerializer(opportunities,many=True,context=context).data,
+        })
+
 class OpportunityDetailView(APIView):
     def get(self,request,pk): return Response(OpportunitySerializer(get_object_or_404(Opportunity,pk=pk),context={'request':request}).data)
     def post(self,request,pk):
