@@ -86,12 +86,12 @@ Password for demo accounts: `Athlenet@123`
 ## Main working modules
 - JWT login/register with live password-strength guidance and server-side password rules
 - Unique mobile numbers per account and editable email addresses from the profile editor
-- Connections page for managing followed members
+- Following page for viewing and managing followed members
 - Player, Coach and General User profiles
 - Coach opportunity creation
 - Opportunity search by keyword, sport and location
 - Player opportunity applications
-- Community posts with image uploads and likes
+- Community posts with image uploads, likes, comments and owner-only deletion
 - Local Hub directory with member search, role/sport/location filters, follows and direct messages
 - Sports news with location filtering and search
 - Global search for people, opportunities and news

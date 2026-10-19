@@ -233,6 +233,12 @@ class PostListCreateView(APIView):
             return Response(PostSerializer(obj,context={'request':request}).data,201)
         return Response(s.errors,400)
 
+class PostDetailView(APIView):
+    def delete(self, request, pk):
+        post = get_object_or_404(Post, pk=pk, author=request.user)
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class FeedView(APIView):
     def get(self, request):
         user = request.user

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 
-from .models import Follow, PlayerProfile, Profile
+from .models import Comment, Follow, Like, PlayerProfile, Post, Profile
 
 
 class AccountFeatureTests(APITestCase):
@@ -127,8 +127,6 @@ class AccountFeatureTests(APITestCase):
         self.assertEqual([member['user']['username'] for member in response.data], ['fan'])
 
     def test_posts_can_be_filtered_by_author(self):
-        from .models import Post
-
         owner = User.objects.create_user(username='post-owner', password='password')
         other = User.objects.create_user(username='other-author', password='password')
         Profile.objects.create(user=owner)
@@ -140,3 +138,39 @@ class AccountFeatureTests(APITestCase):
         response = self.client.get('/api/posts/', {'author': owner.username})
         self.assertEqual(response.status_code, 200)
         self.assertEqual([post['content'] for post in response.data], ['My post'])
+
+    def test_user_can_like_and_comment_on_another_users_post(self):
+        author = User.objects.create_user(username='post-author', password='password')
+        member = User.objects.create_user(username='post-member', password='password')
+        post = Post.objects.create(author=author, content='A community post')
+        self.client.force_authenticate(user=member)
+
+        liked = self.client.post(f'/api/posts/{post.pk}/like/')
+        commented = self.client.post(
+            f'/api/posts/{post.pk}/comments/',
+            {'text': 'Great work!'},
+            format='json',
+        )
+
+        self.assertEqual(liked.status_code, 200)
+        self.assertTrue(liked.data['liked'])
+        self.assertEqual(liked.data['count'], 1)
+        self.assertEqual(commented.status_code, 201)
+        self.assertEqual(commented.data['text'], 'Great work!')
+        self.assertTrue(Like.objects.filter(post=post, user=member).exists())
+        self.assertTrue(Comment.objects.filter(post=post, user=member).exists())
+
+    def test_user_can_delete_only_their_own_posts(self):
+        owner = User.objects.create_user(username='delete-owner', password='password')
+        other = User.objects.create_user(username='delete-other', password='password')
+        post = Post.objects.create(author=owner, content='Delete only as owner')
+        self.client.force_authenticate(user=other)
+
+        forbidden = self.client.delete(f'/api/posts/{post.pk}/')
+        self.assertEqual(forbidden.status_code, 404)
+        self.assertTrue(Post.objects.filter(pk=post.pk).exists())
+
+        self.client.force_authenticate(user=owner)
+        deleted = self.client.delete(f'/api/posts/{post.pk}/')
+        self.assertEqual(deleted.status_code, 204)
+        self.assertFalse(Post.objects.filter(pk=post.pk).exists())

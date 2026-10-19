@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { API, API_ORIGIN } from '../api';
+import PostActions from './PostActions';
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -18,16 +19,7 @@ function authorName(p) {
   return p.author_name || p.author_username || p.username || 'Member';
 }
 
-function countOf(p, ...keys) {
-  for (const k of keys) {
-    const v = p[k];
-    if (typeof v === 'number') return v;
-    if (Array.isArray(v)) return v.length;
-  }
-  return 0;
-}
-
-export default function CommunityFeed() {
+export default function CommunityFeed({ currentUserId }) {
   const [source, setSource] = useState('all');
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
@@ -122,10 +114,11 @@ export default function CommunityFeed() {
                 </div>
               )}
 
-              <div className="flex gap-6 border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
-                <span>♡ {countOf(p, 'likes_count', 'like_count', 'likes')}</span>
-                <span>💬 {countOf(p, 'comments_count', 'comment_count', 'comments')}</span>
-              </div>
+              <PostActions
+                post={p}
+                currentUserId={currentUserId}
+                onDeleted={(id) => setPosts((current) => current.filter((post) => post.id !== id))}
+              />
             </article>
           );
         })}
